@@ -1,0 +1,58 @@
+import { StyleSheet } from 'react-native';
+
+const styles = StyleSheet.create({
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    paddingHorizontal: 16,
+    paddingVertical: 24,
+  },
+  modalContent: {
+    width: '80%',
+    height: '80%',
+    backgroundColor: 'white',
+    borderRadius: 10,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    textAlign: 'center',
+    paddingHorizontal: 8,
+  },
+  backButton: { alignSelf: 'flex-start', marginBottom: 8 },
+  backButtonText: { color: '#1A73E8', fontSize: 14 },
+  searchInput: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 10, marginBottom: 12 },
+  // 427: поиск и кнопка-воронка — одна строка над окном; черта отделяет
+  // их от списка предметов. 437: кнопка квадратная (по высоте поиска),
+  // иконка-воронка как в крафте + кружок-счётчик активных условий.
+  filterToolbar: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  searchInputInToolbar: { flex: 1, minWidth: 0, marginBottom: 0 },
+  filterToggle: { width: 40, height: 40, marginLeft: 8, borderRadius: 8, borderWidth: 1, borderColor: '#bbb', backgroundColor: '#eee', alignItems: 'center', justifyContent: 'center' },
+  filterIcon: { fontSize: 20, color: '#333' },
+  filterBadge: { position: 'absolute', top: -5, right: -5, minWidth: 17, height: 17, borderRadius: 9, backgroundColor: '#22c55e', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3, borderWidth: 1, borderColor: '#fff' },
+  filterBadgeText: { color: '#fff', fontSize: 10, fontWeight: 'bold' },
+  listDivider: { height: 1, backgroundColor: '#bbb', marginVertical: 6 },
+  itemContainer: {
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#efefef',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  itemName: { fontSize: 16, flex: 1, paddingRight: 8 },
+  itemType: { fontSize: 14, color: '#444' },
+  // 387: базовые характеристики предмета — подстрока под именем
+  itemBasics: { fontSize: 12, color: '#777', width: '100%' },
+  emptyText: { textAlign: 'center', marginVertical: 20, color: '#777' },
+  closeButton: { backgroundColor: '#DC3545', padding: 10, borderRadius: 5, marginTop: 12, alignItems: 'center' },
+  closeButtonText: { color: 'white', fontWeight: 'bold' },
+});
+
+export default styles;

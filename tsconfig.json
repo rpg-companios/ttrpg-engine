@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": [
+      "ES2020",
+      "DOM"
+    ],
+    "jsx": "react",
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "allowJs": true,
+    "checkJs": false,
+    "resolveJsonModule": true,
+    "types": []
+  },
+  "include": [
+    "modules/fallout/survival",
+    "modules/fallout/screens/WeaponsAndArmorScreen/modals",
+    "src/store/characterState.ts",
+    "src/saves/saveSnapshot.ts",
+    "src/store/characterActions.ts",
+    "src/engine"
+  ],
+  "extends": "expo/tsconfig.base"
+}

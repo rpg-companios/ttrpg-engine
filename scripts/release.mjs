@@ -327,7 +327,97 @@ const parseJson = (text, what) => {
   }
 };
 
-const eas = (args) => run('npx', ['eas-cli', ...args]);
+/**
+ * Зависимости приложения перед EAS-сборкой.
+ *
+ * EAS перед отправкой в облако собирает архив проекта локально и читает
+ * плагины Expo из node_modules. Свежий клон (или дерево после `git clean -fd`)
+ * их не имеет, и сборка падает на «Failed to resolve plugin for module
+ * "expo-asset"». node_modules в git не лежит — ставим сами.
+ */
+const ensureEngineDependencies = () => {
+  const installed = path.join(ROOT, 'node_modules', 'expo-asset');
+  if (fs.existsSync(installed)) return;
+  if (!hasCommand('npm')) fail('для сборки APK нужен npm: поставьте node 18+ и npm');
+  const lock = path.join(ROOT, 'package-lock.json');
+  const command = fs.existsSync(lock) ? 'ci' : 'install';
+  console.log(`[release] нет node_modules — ставлю зависимости (npm ${command})`);
+  try {
+    execFileSync('npm', [command, '--no-audit', '--no-fund'], { cwd: ROOT, stdio: 'inherit' });
+  } catch {
+    fail(`не удалось поставить зависимости: выполните "npm ${command}" вручную`);
+  }
+  if (!fs.existsSync(installed)) {
+    fail('после npm ' + command + ' в node_modules нет expo-asset: проверьте package.json');
+  }
+};
+
+/**
+ * projectId Expo из app.json: ошибка доступа к чужому проекту иначе выглядит
+ * как загадочное «Entity Not Authorized».
+ */
+const easProjectId = () => {
+  try {
+    const app = JSON.parse(fs.readFileSync(path.join(ROOT, 'app.json'), 'utf8'));
+    return app?.expo?.extra?.eas?.projectId ?? null;
+  } catch {
+    return null;
+  }
+};
+
+/** Аккаунт, под которым работает EAS (`handylinux (…)`); null — не узнать. */
+const easAccount = () => {
+  try {
+    const out = execFileSync('npx', ['eas-cli', 'whoami'], {
+      cwd: ROOT,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
+    return (out ?? '').trim().split('\n')[0].trim() || null;
+  } catch {
+    return null;
+  }
+};
+
+const easAuthHint = () => {
+  const projectId = easProjectId();
+  const account = easAccount();
+  return [
+    '',
+    `  Проект Expo ${projectId ?? '(нет projectId в app.json)'} этому аккаунту недоступен`
+      + `${account ? ` (вход выполнен: ${account})` : ''}.`,
+    '  Варианты:',
+    '    • войти аккаунтом-владельцем проекта — EXPO_TOKEN в Replit → Tools → Secrets,',
+    '    • перенести проект на свой аккаунт: expo.dev → проект → Project settings → Transfer,',
+    '    • создать новый проект: npx eas-cli init (запишет projectId и updates.url в app.json).',
+    '  app.json приезжает в репозиторий движка публикацией: правку projectId',
+    '  нужно делать в смешанном репозитории (app.json там) и потом публиковать,',
+    '  иначе следующий publish вернёт старое значение.',
+  ].join('\n');
+};
+
+/** EAS; сетевые ошибки и отказ доступа дополняются подсказкой. */
+const eas = (args) => {
+  try {
+    return execFileSync('npx', ['eas-cli', ...args], {
+      cwd: ROOT,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: process.env,
+    });
+  } catch (error) {
+    const output = `${error?.stderr ?? ''}\n${error?.stdout ?? ''}`
+      .split('\n')
+      .filter((line) => !/deprecated|is deprecated/i.test(line))
+      .join('\n')
+      .trim();
+    const hint = /not authorized|Entity Not Authorized|incorrect user/i.test(output)
+      ? easAuthHint()
+      : '';
+    fail(`npx eas-cli ${args.join(' ')} не удался\n${output}${hint}`);
+    return '';
+  }
+};
 
 const resolveBuild = ({ args, profile }) => {
   if (args.buildId) return parseJson(eas(['build:view', args.buildId, '--json']), 'build:view');
@@ -393,6 +483,9 @@ const releaseEngine = async ({ args, repository }) => {
     return;
   }
 
+  ensureEngineDependencies();
+  const account = easAccount();
+  if (account) console.log(`[release] EAS: ${account}`);
   const build = resolveBuild({ args, profile });
   console.log(`[release] сборка ${build.id}: ${build.status}`);
   const artifact = await downloadArtifact(build);

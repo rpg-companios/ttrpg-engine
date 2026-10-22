@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "version": "1.0.1",
+  "tag": "engine-v1.0.1",
+  "repository": "rpg-companios/ttrpg-engine",
+  "asset": "positronium.apk",
+  "bytes": 85379978,
+  "sha256": "eda2b31aceab5647502f6c34ffefcd7ee3e107f94c8ec97d017f42d58e1fbd70",
+  "downloadUrl": "https://github.com/rpg-companios/ttrpg-engine/releases/latest/download/positronium.apk",
+  "pageUrl": "https://github.com/rpg-companios/ttrpg-engine/releases",
+  "notes": {
+    "ru-RU": [
+      "Иконка и проверка обновлений",
+      "Приложение снова с иконкой: лаунчер Android берёт логотип Positronium, а не заглушку из шаблона. В приложении появилось окно «Что нового» и проверка обновлений, а сам APK — по постоянной ссылке `releases/latest/download/positronium.apk`."
+    ]
+  },
+  "publishedAt": "2026-10-22T17:25:55.402Z"
+}

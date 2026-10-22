@@ -9,6 +9,25 @@
 - Веб-сборка: `npm run build` (`expo export --platform web`).
 - Лицензия: AGPL-3.0 (см. `LICENSE`, `NOTICE`).
 
+## Скачать
+
+| что | где |
+| --- | --- |
+| Android, последняя версия (APK) | <https://github.com/rpg-companios/ttrpg-engine/releases/latest/download/positronium.apk> |
+| Все версии, состав и размер | <https://github.com/rpg-companios/ttrpg-engine/releases> |
+| Веб-версия (PWA) | собирается `npm run build` и раздаётся с вашего хостинга |
+
+Ссылка на APK постоянная: имя файла в релизе всегда `positronium.apk`, меняется
+только тег `engine-v<версия>`. Поэтому адрес можно сохранить в закладки и
+передавать людям — он не сломается со следующим релизом.
+
+Установленный APK сам проверяет обновления: при запуске (и кнопкой
+«Проверить обновления» в окне «О приложении») он читает `app-release.json`
+движка и показывает окно «Доступна новая версия» со ссылкой на APK. В PWA
+та же кнопка проверяет и обновляет страницу, а о новом веб-релизе сообщает
+окно «Что нового». Правки только в JS доезжают ещё быстрее — по OTA
+(`expo-updates`), без переустановки приложения.
+
 ## Что умеет без сеттинга
 
 Приложение запускается и работает как менеджер персонажей: каталоги, папки,
@@ -46,7 +65,7 @@ npm run typecheck  # tsc --noEmit
 
 ```sh
 npm run build      # expo export --platform web → dist/
-npm run serve      # раздать собранное на :5000
+npm run serve      # раздать собранное на :5000 (npx serve, ставится на лету)
 ```
 
 ## Сборка APK
@@ -99,14 +118,29 @@ npm run apk:local
 Одна-две строки для игрока.
 ```
 
-Выпуск (из совмещённого репозитория, откуда идёт публикация):
+Выпуск — из самого репозитория движка, одной командой:
 
 ```sh
-./scripts/publish-engine.sh --release --asset ~/Downloads/positronium-1.0.0.apk
+npm run release            # APK → GitHub Release → app-release.json → push
+npm run release -- --aab   # AAB (файл для Google Play) в релиз
+npm run release -- --aab --submit   # плюс загрузка AAB в Play Console
 ```
 
-Без `--asset` создаётся релиз только с описанием — файл можно приложить
-позже (`gh release upload engine-v1.0.0 <файл> --clobber`).
+Скрипт сам собирает профиль EAS (`preview` для APK, `production` для AAB),
+скачивает артефакт, создаёт тег `engine-v<версия>` и релиз с ассетом
+`positronium.apk` (имя постоянное — ссылка `latest/download` не меняется),
+затем пишет `app-release.json` (индекс обновлений для приложения) и коммитит
+его. Ручного скачивания файла и проброса путей из другого чекаута нет.
+
+Код в этот репозиторий доставляется публикацией из смешанного репозитория
+(`./scripts/publish-engine.sh` там) — она файл `app-release.json` не трогает.
+
+OTA-обновление (только JS, без новой сборки; нативные изменения требуют
+`npm run apk`):
+
+```sh
+npm run ota -- --message "Что изменилось"
+```
 
 ## Структура
 

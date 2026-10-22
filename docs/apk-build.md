@@ -9,9 +9,13 @@
 
 - `app.json` — `name: Positronium`, `slug: positronium`,
   `android.package`/`ios.bundleIdentifier`: `com.rpgcompanios.positronium`,
-  схема `positronium`, `version: 1.0.0` (совпадает с `ENGINE_VERSION`).
-- `eas.json` — профили `preview` (APK), `production` (AAB для Google Play),
-  `development` (dev-client).
+  схема `positronium`, `version: 1.0.1` (совпадает с `ENGINE_VERSION`).
+- `eas.json` — профили `preview` (APK, канал `preview`), `production`
+  (AAB для Google Play, канал `production`), `development` (dev-client).
+  `appVersionSource: remote`: `versionCode` ведёт EAS и поднимает при каждом
+  билде — иначе Android не даст обновить установленное приложение.
+- `expo-updates` — OTA: правки JS доезжают до установленных APK без новой
+  сборки (`app.json` → `updates.url`, `runtimeVersion.policy: appVersion`).
 - npm-скрипты: `npm run apk`, `npm run aab`, `npm run apk:local`.
 - Иконки и сплэш в `assets/`.
 
@@ -81,26 +85,42 @@ npx expo export --platform android --output-dir dist
 В репозитории движка это уже проверено: бандл Hermes ≈ 3.7 МБ собирается без
 папки `modules/`.
 
-## Публикация APK в релиз
+## Сборка и публикация релиза — одна команда
 
-Готовый APK прикладывается к GitHub Release движка (тег `engine-v<версия>`,
-версия — `expo.version` в `app.json`). Собирает его EAS, публикация только
-прикладывает файл:
-
-```sh
-npm run apk
-# из совмещённого репозитория:
-./scripts/publish-engine.sh --release --asset ~/Downloads/positronium-1.0.0.apk
-```
-
-Текст релиза берётся из верхней секции `release-notes/engine.md`; её номер
-должен совпадать с версией приложения. Без `--asset` релиз создаётся с
-описанием, файл добавляется позже:
+Всё делается здесь же, в репозитории движка (в смешанном репозитории — только
+разработка и веб-режим). Ручное скачивание APK не нужно:
 
 ```sh
-gh release upload engine-v1.0.0 positronium-1.0.0.apk \
-  --repo rpg-companios/ttrpg-engine --clobber
+npm run release                     # APK → GitHub Release + app-release.json
+npm run release -- --aab            # AAB (файл для Google Play) в релиз
+npm run release -- --aab --submit   # плюс загрузка AAB в Play Console
 ```
+
+Скрипт `scripts/release.mjs`: проверяет версию (`app.json`) и заметки
+(`release-notes/engine.md` — номер верхней секции должен совпасть), собирает
+профиль EAS (`preview` → APK, `production` → AAB), скачивает артефакт, создаёт
+релиз `engine-v<версия>` с файлом `positronium.apk`, пишет `app-release.json`
+и коммитит его.
+
+Другие режимы: `--build-id <id>` (опубликовать уже собранную сборку),
+`--skip-build` (взять последнюю успешную), `--dry-run` (показать план).
+
+Постоянная ссылка, которую можно давать людям:
+<https://github.com/rpg-companios/ttrpg-engine/releases/latest/download/positronium.apk>.
+
+## OTA-обновление (без новой сборки)
+
+`expo-updates` доставляет правки JS в уже установленный APK:
+
+```sh
+npm run ota -- --message "Что изменилось"          # канал preview
+npx eas-cli update --channel production --message "..." # канал production
+```
+
+Через OTA нельзя менять нативную часть (новый модуль, разрешение, иконку,
+`versionCode`) — для такого нужен новый APK по инструкции выше. Проект EAS,
+`projectId` и каналы уже прописаны в `app.json`/`eas.json`, повторный
+`eas update:configure` не нужен.
 
 ## Установка сеттинга в собранное приложение
 

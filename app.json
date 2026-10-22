@@ -2,9 +2,18 @@
   "expo": {
     "name": "Positronium",
     "slug": "positronium",
-    "version": "1.0.0",
+    "version": "1.0.1",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/3f9910a4-6111-4eba-b6e1-382da3b977ad",
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    },
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
@@ -21,7 +30,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.rpgcompanios.positronium"
+      "package": "com.rpgcompanios.positronium",
+      "versionCode": 1
     },
     "web": {
       "bundler": "metro",
@@ -37,6 +47,11 @@
       "expo-asset",
       "expo-sqlite"
     ],
-    "scheme": "positronium"
+    "scheme": "positronium",
+    "extra": {
+      "eas": {
+        "projectId": "3f9910a4-6111-4eba-b6e1-382da3b977ad"
+      }
+    }
   }
 }

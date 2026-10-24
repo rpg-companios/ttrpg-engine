@@ -37,6 +37,10 @@ import useAppSettingsStore, {
   selectBootScreenEnabled,
   selectSettingsHydrated,
 } from './src/store/appSettingsStore';
+import {
+  SETTING_THEME_DEFAULTS,
+  shouldScrollSettingTabBar,
+} from './src/engine/settings/settingScreens';
 import useSettingPackStore, {
   selectActiveSettingId,
   selectActivationGuard,
@@ -53,12 +57,11 @@ const Tab = createMaterialTopTabNavigator();
 // Каноническое название приложения (Google OAuth branding, PWA, заголовок вкладки).
 // Единый бренд — Positronium (движок-менеджер персонажей для настольных RPG).
 const APP_BRAND = 'Positronium';
+// Движок владеет только своими экранами: главный и слоты сеттинга.
+// Имена экранов сеттинга — `SettingScreen1…7`, их выдаёт settingScreens.js;
+// App.js не знает ни Fallout, ни D&D.
 const TAB_ROUTES = {
   HOME: 'HomeTab',
-  CHARACTER: 'CharacterTab',
-  EQUIPMENT: 'EquipmentTab',
-  INVENTORY: 'InventoryTab',
-  PERKS: 'PerksTab',
 };
 
 function App() {
@@ -126,6 +129,13 @@ function App() {
     Guarded.displayName = `SettingScreen(${screen.id})`;
     return { ...screen, component: Guarded };
   }), [activeRuntime, handleSettingRuntimeCrash]);
+
+  // Оформление рамки задаёт сеттинг; движок подставляет своё, если пакет молчит.
+  const tabTheme = activeRuntime?.theme?.tabBar ?? SETTING_THEME_DEFAULTS.tabBar;
+  // Пакету может понадобиться больше вкладок, чем помещается в ширину экрана.
+  // Тогда панель прокручивается: решение принимает движок, сеттинг об этом
+  // ничего не пишет.
+  const scrollTabs = shouldScrollSettingTabBar(settingScreens.length);
 
   const activeGlobalComponents = useMemo(
     () => Object.entries(activeRuntime?.globalComponents ?? {}).map(([id, RuntimeComponent]) => {
@@ -384,7 +394,7 @@ function App() {
                     initialRouteName={TAB_ROUTES.HOME}
                     screenOptions={({ route }) => ({
                       tabBarIcon: ({ focused, color }) => {
-                        const settingScreen = activeRuntime?.screens.find(
+                        const settingScreen = settingScreens.find(
                           (screen) => screen.route === route.name,
                         );
                         const iconBase = route.name === TAB_ROUTES.HOME
@@ -394,13 +404,17 @@ function App() {
                         return <Ionicons name={iconName} size={16} color={color} />;
                       },
                       tabBarStyle: {
-                        backgroundColor: '#1a1a1a',
+                        backgroundColor: tabTheme.background,
                         borderTopColor: '#5a5a5a',
                       },
-                      tabBarActiveTintColor: '#f0e68c',
-                      tabBarInactiveTintColor: 'gray',
+                      tabBarActiveTintColor: tabTheme.active,
+                      tabBarInactiveTintColor: tabTheme.inactive,
                       tabBarShowIcon: true,
-                      tabBarIndicatorStyle: { backgroundColor: '#f0e68c', height: 2 },
+                      tabBarScrollEnabled: scrollTabs,
+                      // При прокрутке вкладка не сжимается до нечитаемого: у неё
+                      // своя ширина, остальное уезжает за край.
+                      ...(scrollTabs ? { tabBarItemStyle: { width: 88 } } : {}),
+                      tabBarIndicatorStyle: { backgroundColor: tabTheme.active, height: 2 },
                       swipeEnabled: true,
                       animationEnabled: true,
                       style: { backgroundColor: 'transparent' },
@@ -423,7 +437,7 @@ function App() {
                         options={{
                           tabBarLabel: ({ color }) => (
                             <Text style={{ color, fontSize: 11, textAlign: 'center' }}>
-                              {tApp(screen.labelKey)}
+                              {screen.titleKey ? tApp(screen.titleKey) : screen.title}
                             </Text>
                           ),
                         }}

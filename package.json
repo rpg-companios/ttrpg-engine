@@ -10,15 +10,19 @@
     "apk": "npx eas-cli build --platform android --profile preview",
     "apk:local": "npx expo prebuild --platform android --clean && cd android && ./gradlew assembleRelease",
     "aab": "npx eas-cli build --platform android --profile production",
-    "ota": "npx eas-cli update --channel preview",
+    "testing:push": "./scripts/testing-push.sh",
+    "product:push": "./scripts/product-push.sh",
+    "ota": "./scripts/testing-push.sh",
     "release": "node scripts/release.mjs",
+    "release:test": "node scripts/release.mjs --prerelease",
     "release:play": "node scripts/release.mjs --aab --submit",
     "serve": "npx serve -s dist -l 5000",
     "test": "vitest run",
     "publish:plan": "node scripts/publish-repositories.mjs",
     "publish:engine": "node scripts/publish-repositories.mjs --target engine --patch --push",
     "publish:setting": "node scripts/publish-repositories.mjs --target setting --patch --push",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check:package": "node scripts/check-setting-package.mjs"
   },
   "dependencies": {
     "@expo/metro-runtime": "~57.0.13",
